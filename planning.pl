@@ -14,4 +14,3 @@ my $p = &Meteo::Planning::planning (@date);
 
 print &Dumper ($p);
 
-

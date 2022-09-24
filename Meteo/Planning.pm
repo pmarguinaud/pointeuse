@@ -7,6 +7,8 @@ use lib $Bin;
 use Meteo::Pegase;
 use Data::Dumper;
 use Date::Calc qw (Week_of_Year Monday_of_Week Add_Delta_Days Today);
+use base qw (Exporter);
+our @EXPORT = qw (planning);
 
 sub randhhmm
 {
@@ -40,16 +42,9 @@ sub planning
     {
       my @day = &Add_Delta_Days (@monday, $i);
       my $YYYYMMDD = sprintf ("%4.4d%2.2d%2.2d", @day);
-      if ($w->[$i] & AM)
-        {
-          push @YYYYMMDDhhmm,
-          $YYYYMMDD . &randhhmm ($am[0], $v), $YYYYMMDD . &randhhmm ($am[1], $v/2);
-        }
-      if ($w->[$i] & PM)
-        {
-          push @YYYYMMDDhhmm,
-          $YYYYMMDD . &randhhmm ($pm[0], $v/2), $YYYYMMDD . &randhhmm ($pm[1], $v);
-        }
+      my @amt = ($YYYYMMDD . &randhhmm ($am[0], $v), $YYYYMMDD . &randhhmm ($am[1], $v/2));
+      my @pmt = ($YYYYMMDD . &randhhmm ($pm[0], $v/2), $YYYYMMDD . &randhhmm ($pm[1], $v));
+      push @YYYYMMDDhhmm, map ({ [$_, 'AM', $w->[$i] & AM] } @amt), map ({ [$_, 'PM', $w->[$i] & PM] } @pmt);
     }
 
   return \@YYYYMMDDhhmm;
