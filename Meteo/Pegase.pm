@@ -10,6 +10,8 @@ use File::Basename;
 use FileHandle;
 use Date::Calc qw (Week_of_Year Today Monday_of_Week Add_Delta_Days Delta_Days Day_of_Week);
 use Meteo::Credentials;
+use base qw (Exporter);
+our @EXPORT = qw (AM PM getCurrentWeek workTodayAM workTodayPM);
 
 use constant
 {
