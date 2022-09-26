@@ -11,7 +11,10 @@ use FileHandle;
 use Date::Calc qw (Week_of_Year Today Monday_of_Week Add_Delta_Days Delta_Days Day_of_Week);
 use Meteo::Credentials;
 use base qw (Exporter);
-our @EXPORT = qw (AM PM getCurrentWeek workTodayAM workTodayPM parseYYYYMMDD);
+our @EXPORT = qw (AM PM getCurrentWeek workTodayAM workTodayPM parseYYYYMMDD parseYYYYMMDDhhmm);
+
+
+my $HOME = (getpwuid ($>))[7];
 
 use constant
 {
@@ -34,6 +37,21 @@ sub parseYYYYMMDD
   return @date;
 }
 
+sub parseYYYYMMDDhhmm
+{
+  my $YYYYMMDDhhmm = shift;
+  die unless (my @date = ($YYYYMMDDhhmm =~ m/^(\d\d\d\d)(\d\d)(\d\d)(\d\d)(\d\d)$/o));
+ 
+  for (@date)
+    {
+      s/^0*//o;
+    } 
+
+  die if (grep { length ($_) == 0 } @date);
+
+  return @date;
+}
+
 sub getPegaseWeek
 {
   my ($year, $month, $day) = scalar (@_) ? @_ : &Today ();
@@ -42,7 +60,7 @@ sub getPegaseWeek
 
   my $W;
 
-  my $cached = "./.pegase/$week-$year.pl";
+  my $cached = "$HOME/.pointeuse/pegase/$week-$year.pl";
 
   if (-f $cached)
     {

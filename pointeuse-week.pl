@@ -5,10 +5,14 @@ use FindBin qw ($Bin);
 use lib $Bin;
 
 use Meteo::Planning;
+use Meteo::Pointeuse;
 use Meteo::Pegase;
 use Data::Dumper;
-use Date::Calc qw (Week_of_Year Monday_of_Week Today Delta_Days);
+use Date::Calc qw (Week_of_Year Monday_of_Week Today Delta_Days Today_and_Now Mktime);
 use File::Spec;
+use WWW::Mechanize;
+
+my $SMSURL = 'https://smsapi.free-mobile.fr/sendmsg?user=14238380&pass=MB8K4O01vqtlwI&msg=%s';
 
 my $bin = 'File::Spec'->rel2abs ($0);
 
@@ -32,17 +36,26 @@ my $Dd = &Delta_Days (@monday, @date);
 splice (@$p, 0, 4) for (1 .. $Dd);
 splice (@$p, 0, 2) if ($when eq 'PM');
 
-
 if ($work)
   {
-    print "POINTAGE : @{$p->[0]}\n";
+    &Meteo::Pointeuse::pointage ();
+    my @now = &Today_and_Now ();
+    my $tnow = &Mktime (@now);
+    my $tdat = &Mktime (&parseYYYYMMDDhhmm ($date));
+    my $dt = $tnow - $tdat;
+    print &Dumper ([$tnow, $tdat, $dt]);
+    my $ua = 'WWW::Mechanize'->new ();
+    $ua->get (sprintf ($SMSURL, sprintf ('%4.4d%2.2d%2.2d.%2.2d:%2.2d', &now ())));
   }
 
 shift (@$p) unless ($init);
 
 exit (0) unless (@$p);
 
+my @at = ('at', -t => $p->[0][0], $bin, @{$p->[0]});
 
-print "at -t $p->[0][0] $bin @{$p->[0]}\n";
+my $cmd = "echo \"$bin @{$p->[0]}\" | at -t $p->[0][0]";
+
+system ($cmd);
 
 
