@@ -38,15 +38,18 @@ splice (@$p, 0, 2) if ($when eq 'PM');
 
 if ($work)
   {
-    &Meteo::Pointeuse::pointage ();
     my @now = &Today_and_Now ();
     my $tnow = &Mktime (@now);
     my $tdat = &Mktime (&parseYYYYMMDDhhmm ($date), 0);
     my $dt = $tnow - $tdat;
-    print &Dumper ([$tnow, $tdat, $dt]);
+    # Allow for up to 10 minutes delay
+    if (abs ($dt) < 600)
+       {
+         &Meteo::Pointeuse::pointage ();
+         my $ua = 'WWW::Mechanize'->new (ssl_opts => {verify_hostname => 0});
+         $ua->get (sprintf ($SMSURL, sprintf ('%4.4d%2.2d%2.2d.%2.2d:%2.2d:%2.2d', @now)));
+       }
 
-    my $ua = 'WWW::Mechanize'->new (ssl_opts => {verify_hostname => 0});
-    $ua->get (sprintf ($SMSURL, sprintf ('%4.4d%2.2d%2.2d.%2.2d:%2.2d:%2.2d', @now)));
   }
 
 shift (@$p) unless ($init);
