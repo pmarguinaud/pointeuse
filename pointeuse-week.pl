@@ -41,11 +41,12 @@ if ($work)
     &Meteo::Pointeuse::pointage ();
     my @now = &Today_and_Now ();
     my $tnow = &Mktime (@now);
-    my $tdat = &Mktime (&parseYYYYMMDDhhmm ($date));
+    my $tdat = &Mktime (&parseYYYYMMDDhhmm ($date), 0);
     my $dt = $tnow - $tdat;
     print &Dumper ([$tnow, $tdat, $dt]);
-    my $ua = 'WWW::Mechanize'->new ();
-    $ua->get (sprintf ($SMSURL, sprintf ('%4.4d%2.2d%2.2d.%2.2d:%2.2d', &now ())));
+
+    my $ua = 'WWW::Mechanize'->new (ssl_opts => {verify_hostname => 0});
+    $ua->get (sprintf ($SMSURL, sprintf ('%4.4d%2.2d%2.2d.%2.2d:%2.2d:%2.2d', @now)));
   }
 
 shift (@$p) unless ($init);
