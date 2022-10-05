@@ -10,8 +10,6 @@ use Meteo::Credentials;
 
 sub pointage
 {
-  my $dryrun = shift;
-
   my $ua = 'WWW::Mechanize'->new ();
   $ua->agent_alias ('Linux Mozilla');
   

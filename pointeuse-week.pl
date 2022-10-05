@@ -8,65 +8,47 @@ use Meteo::Planning;
 use Meteo::Pointeuse;
 use Meteo::Pegase;
 use Meteo::Report;
+use Meteo::Log;
 
 use Data::Dumper;
 use Date::Calc qw (Week_of_Year Monday_of_Week Today Delta_Days Today_and_Now Mktime);
 use File::Spec;
 
+sub schedule
+{
+  my $p = shift;
+  my $bin = 'File::Spec'->rel2abs ($0);
+  my $cmd = "echo \"$bin\" | at -t $p->[0]";
+  &Meteo::Log::log ($cmd);
+  exec ($cmd);
+}
 
-my $bin = 'File::Spec'->rel2abs ($0);
+my $planning = &Meteo::Planning::planning (&Today ());
 
-die unless (scalar (@ARGV) >= 1);
+my @now = &Today_and_Now ();
+my $tnow = &Mktime (@now);
 
-my ($date, $when, $work) = @ARGV;
+my $n = scalar (@$planning);
 
-my $init = (! defined ($when)) && (! defined ($work));
-$when ||= 'AM';
-$work ||= 0;
+my $dt0 = +1;
 
-my @date = &parseYYYYMMDD (substr ($date, 0, 8));
-
-my $p = &Meteo::Planning::planning (@date);
-
-my ($week, $year) = &Week_of_Year (@date);
-my @monday = &Monday_of_Week ($week, $year);
-
-my $Dd = &Delta_Days (@monday, @date);
-
-print &Dumper ($p);
-
-splice (@$p, 0, 4) for (1 .. $Dd);
-splice (@$p, 0, 2) if ($when eq 'PM');
-
-print &Dumper ($p);
-
-if ($work)
+for my $i (0 .. $n-1)
   {
-    my @now = &Today_and_Now ();
-    my $tnow = &Mktime (@now);
-    my $tdat = &Mktime (&parseYYYYMMDDhhmm ($date), 0);
-    my $dt = $tnow - $tdat;
-    # Allow for up to 10 minutes delay
-    if (abs ($dt) < 600)
-       {
-         &Meteo::Pointeuse::pointage ();
-         &Report::report (sprintf ('%4.4d%2.2d%2.2d.%2.2d:%2.2d:%2.2d', @now));
-       }
-    else
-       {
-         &Meteo::Log::log ("@ARGV");
-       }
+    my $p = $planning->[$i];
+    my $dt1 = $tnow - &Mktime (&parseYYYYMMDDhhmm ($p->[0]), 0);
 
+    if (abs ($dt1) < 60)
+      {
+        &Meteo::Pointeuse::pointage ();
+        &Meteo::Report::report (sprintf ('%4.4d%2.2d%2.2d.%2.2d:%2.2d:%2.2d', @now));
+        &Meteo::Log::log ('POINTAGE');
+        &schedule ($planning->[$i+1]) if ($i < $n-1);
+      }
+    elsif ($dt1 * $dt0 < 0)
+      {
+        &schedule ($p);
+      }
+
+    $dt0 = $dt1;
   }
-
-shift (@$p) unless ($init);
-
-exit (0) unless (@$p);
-
-my @at = ('at', -t => $p->[0][0], $bin, @{$p->[0]});
-
-my $cmd = "echo \"$bin @{$p->[0]}\" | at -t $p->[0][0]";
-
-system ($cmd);
-
 
