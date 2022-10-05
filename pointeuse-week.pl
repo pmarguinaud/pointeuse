@@ -7,12 +7,12 @@ use lib $Bin;
 use Meteo::Planning;
 use Meteo::Pointeuse;
 use Meteo::Pegase;
+use Meteo::Report;
+
 use Data::Dumper;
 use Date::Calc qw (Week_of_Year Monday_of_Week Today Delta_Days Today_and_Now Mktime);
 use File::Spec;
-use WWW::Mechanize;
 
-my $SMSURL = 'https://smsapi.free-mobile.fr/sendmsg?user=14238380&pass=MB8K4O01vqtlwI&msg=%s';
 
 my $bin = 'File::Spec'->rel2abs ($0);
 
@@ -33,8 +33,12 @@ my @monday = &Monday_of_Week ($week, $year);
 
 my $Dd = &Delta_Days (@monday, @date);
 
+print &Dumper ($p);
+
 splice (@$p, 0, 4) for (1 .. $Dd);
 splice (@$p, 0, 2) if ($when eq 'PM');
+
+print &Dumper ($p);
 
 if ($work)
   {
@@ -46,8 +50,11 @@ if ($work)
     if (abs ($dt) < 600)
        {
          &Meteo::Pointeuse::pointage ();
-         my $ua = 'WWW::Mechanize'->new (ssl_opts => {verify_hostname => 0});
-         $ua->get (sprintf ($SMSURL, sprintf ('%4.4d%2.2d%2.2d.%2.2d:%2.2d:%2.2d', @now)));
+         &Report::report (sprintf ('%4.4d%2.2d%2.2d.%2.2d:%2.2d:%2.2d', @now));
+       }
+    else
+       {
+         &Meteo::Log::log ("@ARGV");
        }
 
   }
