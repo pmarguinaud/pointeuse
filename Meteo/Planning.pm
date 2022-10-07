@@ -29,7 +29,7 @@ sub planning
   my @date = @_ ? @_ : &Today ();
   
   my $w = &getCurrentWeek (@date);
-  
+
   my ($week, $year) = &Week_of_Year (@date);
   my @monday = &Monday_of_Week ($week, $year);
   my $init = $year * 52 + $week;
