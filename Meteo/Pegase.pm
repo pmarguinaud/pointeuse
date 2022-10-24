@@ -11,7 +11,7 @@ use FileHandle;
 use Date::Calc qw (Week_of_Year Today Monday_of_Week Add_Delta_Days Delta_Days Day_of_Week);
 use Meteo::Credentials;
 use base qw (Exporter);
-our @EXPORT = qw (AM PM getCurrentWeek workTodayAM workTodayPM parseYYYYMMDD parseYYYYMMDDhhmm);
+our @EXPORT = qw (AM PM getCurrentWeek workTodayAM workTodayPM parseYYYYMMDD parseYYYYMMDDhhmm parseYYYYMMDDhhmmss);
 
 
 my $HOME = (getpwuid ($>))[7];
@@ -45,9 +45,22 @@ sub parseYYYYMMDDhhmm
   for (@date)
     {
       s/^0*//o;
+      $_ ||= 0;
     } 
 
-  die if (grep { length ($_) == 0 } @date);
+  return @date;
+}
+
+sub parseYYYYMMDDhhmmss
+{
+  my $YYYYMMDDhhmmss = shift;
+  die unless (my @date = ($YYYYMMDDhhmmss =~ m/^(\d\d\d\d)(\d\d)(\d\d)(\d\d)(\d\d)\.(\d\d)$/o));
+ 
+  for (@date)
+    {
+      s/^0*//o;
+      $_ ||= 0;
+    } 
 
   return @date;
 }

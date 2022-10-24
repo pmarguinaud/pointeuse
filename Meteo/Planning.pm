@@ -19,6 +19,16 @@ sub randhhmm
   return sprintf ('%2.2d%2.2d', $hh, $mm);
 }
 
+sub randhhmmss
+{
+  my ($h, $v) = @_;
+  my $t = $h + $v * (rand () - 0.5);
+  my $hh = int ($t); $t = ($t - $hh) * 60;
+  my $mm = int ($t); $t = ($t - $mm) * 60;
+  my $ss = int ($t);
+  return sprintf ('%2.2d%2.2d.%2.2d', $hh, $mm, $ss);
+}
+
 my $v = 0.5;
 my @am = ( 8.5, 12.0);
 my @pm = (13.0, 17.5);
@@ -41,9 +51,9 @@ sub planning
   for my $i (0 .. 6)
     {
       my @day = &Add_Delta_Days (@monday, $i);
-      my $YYYYMMDD = sprintf ("%4.4d%2.2d%2.2d", @day);
-      my @amt = ($YYYYMMDD . &randhhmm ($am[0], $v), $YYYYMMDD . &randhhmm ($am[1], $v/2));
-      my @pmt = ($YYYYMMDD . &randhhmm ($pm[0], $v/2), $YYYYMMDD . &randhhmm ($pm[1], $v));
+      my $YYYYMMDD = sprintf ('%4.4d%2.2d%2.2d', @day);
+      my @amt = ($YYYYMMDD . &randhhmmss ($am[0], $v), $YYYYMMDD . &randhhmmss ($am[1], $v/2));
+      my @pmt = ($YYYYMMDD . &randhhmmss ($pm[0], $v/2), $YYYYMMDD . &randhhmmss ($pm[1], $v));
       push @YYYYMMDDhhmm, map ({ [$_, 'AM', $w->[$i] & AM] } @amt), map ({ [$_, 'PM', $w->[$i] & PM] } @pmt);
     }
 
