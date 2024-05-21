@@ -101,7 +101,7 @@ sub getPegaseWeek
   
   $rq = POST 'http://pegaseweb.meteo.fr/api/', 
         Authorization => "JWT $x->{token}",
-        Content => [action => 'semaineA', 
+        Content => [action => 'tds', agents => 'A',
                     dateDebSel => sprintf ('%4.4d%2.2d%2.2d', @monday0), 
                     dateFinSel => sprintf ('%4.4d%2.2d%2.2d', @monday1)];
   
